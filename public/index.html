@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HL Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg-primary: #0b0e11;
+    --bg-secondary: #12161c;
+    --bg-card: #171b22;
+    --bg-hover: #1e2530;
+    --border: #252a33;
+    --text-primary: #eaecef;
+    --text-secondary: #848e9c;
+    --text-muted: #5e6673;
+    --accent-green: #0ecb81;
+    --accent-green-bg: rgba(14,203,129,0.1);
+    --accent-red: #f6465d;
+    --accent-red-bg: rgba(246,70,93,0.1);
+    --accent-blue: #3b82f6;
+    --accent-yellow: #f0b90b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    width: 28px;
+    height: 28px;
+    background: var(--accent-green);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--bg-primary);
+  }
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .header-title span { color: var(--text-secondary); font-weight: 400; }
+
+  .last-update {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .refresh-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .refresh-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  /* Overview Cards */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    margin-top: 4px;
+    color: var(--text-secondary);
+  }
+
+  .positive { color: var(--accent-green); }
+  .negative { color: var(--accent-red); }
+
+  /* Account Table */
+  .section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 20px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th:last-child, td:last-child { text-align: right; }
+
+  td {
+    padding: 12px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(37,42,51,0.5);
+    font-variant-numeric: tabular-nums;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: var(--bg-hover); }
+
+  .addr {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: var(--accent-blue);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-long { background: var(--accent-green-bg); color: var(--accent-green); }
+  .badge-short { background: var(--accent-red-bg); color: var(--accent-red); }
+
+  .pnl-bar {
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 4px;
+    max-width: 80px;
+    margin-left: auto;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent-green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .overview-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .container { padding: 12px; }
+    .stat-card { padding: 12px 14px; }
+    .stat-value { font-size: 20px; }
+    .stat-label { font-size: 11px; }
+    .header { padding: 12px 16px; }
+    .header-title { font-size: 14px; }
+    .section-header { padding: 12px 14px; }
+    .section-title { font-size: 13px; }
+
+    /* Card layout for tables on mobile */
+    .section { overflow-x: hidden; }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+
+    tr {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+      position: relative;
+    }
+
+    tr:hover td { background: none; }
+
+    td {
+      padding: 3px 0;
+      border-bottom: none;
+      text-align: left !important;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    td::before {
+      content: attr(data-label);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+      margin-right: 12px;
+    }
+
+    .empty-state, .loading {
+      display: block !important;
+      text-align: center;
+    }
+    .loading::before, .empty-state::before { content: none; }
+  }
+
+  @media (max-width: 380px) {
+    .overview-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .stat-value { font-size: 18px; }
+    .stat-card { padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">HL</div>
+    <div>
+      <div class="header-title">Dashboard <span>v2</span></div>
+      <div class="last-update" id="lastUpdate">Loading...</div>
+    </div>
+  </div>
+  <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+</div>
+
+<div class="container">
+  <div class="overview-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Equity</div>
+      <div class="stat-value" id="totalEquity">—</div>
+      <div class="stat-sub" id="totalEquitySub"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Unrealized PnL</div>
+      <div class="stat-value" id="totalUpnl">—</div>
+      <div class="stat-sub" id="totalUpnlSub"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Open Positions</div>
+      <div class="stat-value" id="totalPositions">—</div>
+      <div class="stat-sub" id="totalPositionsSub"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active Accounts</div>
+      <div class="stat-value" id="activeAccounts">—</div>
+      <div class="stat-sub">of 4 accounts</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">📊 Account Overview</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th>Address</th>
+          <th>Equity</th>
+          <th>Available</th>
+          <th>Margin Used</th>
+          <th>Unrealized PnL</th>
+        </tr>
+      </thead>
+      <tbody id="accountsTable">
+        <tr><td colspan="6" class="loading"><span class="spinner"></span>Loading accounts...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">📈 Open Positions</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th>Market</th>
+          <th>Side</th>
+          <th>Size</th>
+          <th>Entry Price</th>
+          <th>Mark Price</th>
+          <th>Leverage</th>
+          <th>Unrealized PnL</th>
+        </tr>
+      </thead>
+      <tbody id="positionsTable">
+        <tr><td colspan="8" class="loading"><span class="spinner"></span>Loading positions...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">🕒 Recent Fills</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th>Time</th>
+          <th>Market</th>
+          <th>Side</th>
+          <th>Size</th>
+          <th>Price</th>
+          <th>Fee</th>
+          <th>Closed PnL</th>
+        </tr>
+      </thead>
+      <tbody id="fillsTable">
+        <tr><td colspan="8" class="loading"><span class="spinner"></span>Loading fills...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const ACCOUNTS = [
+  { name: 'Account 1', address: '0x9c5456c0C690Cf0e707DA03D4B8D0C313cD8a4b1' },
+  { name: 'Account 2', address: '0xEc7D38Cee61aB1f9F14523e1ca41beE57D2099B1' },
+  { name: 'Account 3', address: '0xC694FA726922eFaBae61eb1DDa3da709E4dFa007' },
+  { name: 'Account 4', address: '0xe866d6a085BACf350E5b13F7B8c31bDAc1044aD3' },
+];
+
+const API = 'https://api.hyperliquid.xyz/info';
+
+async function fetchInfo(body) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+function fmt(val, decimals = 2) {
+  const n = parseFloat(val || 0);
+  return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function fmtUsd(val) {
+  return '$' + fmt(val);
+}
+
+function pnlClass(val) {
+  const n = parseFloat(val || 0);
+  return n > 0 ? 'positive' : n < 0 ? 'negative' : '';
+}
+
+function pnlSign(val) {
+  const n = parseFloat(val || 0);
+  return n > 0 ? '+$' + fmt(n) : n < 0 ? '-$' + fmt(Math.abs(n)) : '$0.00';
+}
+
+function shortAddr(addr) {
+  return addr.slice(0, 6) + '...' + addr.slice(-4);
+}
+
+async function loadAll() {
+  document.getElementById('lastUpdate').textContent = 'Updating...';
+
+  let totalEquity = 0;
+  let totalUpnl = 0;
+  let totalPositions = 0;
+  let activeCount = 0;
+  let accountRows = '';
+  let positionRows = '';
+  let allFills = [];
+
+  for (const acc of ACCOUNTS) {
+    try {
+      const [state, fills] = await Promise.all([
+        fetchInfo({ type: 'clearinghouseState', user: acc.address }),
+        fetchInfo({ type: 'userFills', user: acc.address }),
+      ]);
+
+      const equity = parseFloat(state.marginSummary?.accountValue || 0);
+      const available = parseFloat(state.withdrawable || 0);
+      const marginUsed = parseFloat(state.marginSummary?.totalMarginUsed || 0);
+
+      let accUpnl = 0;
+      const positions = (state.assetPositions || []).filter(p => parseFloat(p.position?.szi || 0) !== 0);
+
+      if (equity > 0) activeCount++;
+      totalEquity += equity;
+      totalPositions += positions.length;
+
+      for (const pos of positions) {
+        const p = pos.position;
+        const upnl = parseFloat(p.unrealizedPnl || 0);
+        accUpnl += upnl;
+        const szi = parseFloat(p.szi || 0);
+        const isBuy = szi > 0;
+        const leverage = p.leverage?.value || '—';
+        const leverageType = p.leverage?.type === 'cross' ? 'Cross' : 'Isolated';
+
+        positionRows += `<tr>
+          <td data-label="Account">${acc.name}</td>
+          <td data-label="Market"><strong>${p.coin}</strong></td>
+          <td data-label="Side"><span class="badge ${isBuy ? 'badge-long' : 'badge-short'}">${isBuy ? 'LONG' : 'SHORT'}</span></td>
+          <td data-label="Size">${fmt(Math.abs(szi), 5)}</td>
+          <td data-label="Entry">${fmtUsd(p.entryPx)}</td>
+          <td data-label="Mark">—</td>
+          <td data-label="Leverage">${leverage}x ${leverageType}</td>
+          <td data-label="UPnL" class="${pnlClass(upnl)}">${pnlSign(upnl)}</td>
+        </tr>`;
+      }
+
+      totalUpnl += accUpnl;
+
+      accountRows += `<tr>
+        <td data-label="Account"><strong>${acc.name}</strong></td>
+        <td data-label="Address"><span class="addr">${shortAddr(acc.address)}</span></td>
+        <td data-label="Equity">${fmtUsd(equity)}</td>
+        <td data-label="Available">${fmtUsd(available)}</td>
+        <td data-label="Margin Used">${fmtUsd(marginUsed)}</td>
+        <td data-label="UPnL" class="${pnlClass(accUpnl)}">${pnlSign(accUpnl)}</td>
+      </tr>`;
+
+      // Recent fills (last 10 per account)
+      const recentFills = Array.isArray(fills) ? fills.slice(0, 10) : [];
+      for (const fill of recentFills) {
+        allFills.push({ ...fill, accName: acc.name });
+      }
+    } catch (e) {
+      accountRows += `<tr><td><strong>${acc.name}</strong></td><td colspan="5" style="color:var(--accent-red)">Error loading</td></tr>`;
+    }
+  }
+
+  // Update overview
+  document.getElementById('totalEquity').textContent = fmtUsd(totalEquity);
+  document.getElementById('totalUpnl').textContent = pnlSign(totalUpnl);
+  document.getElementById('totalUpnl').className = 'stat-value ' + pnlClass(totalUpnl);
+  document.getElementById('totalPositions').textContent = totalPositions;
+  document.getElementById('totalPositionsSub').textContent = totalPositions > 0 ? 'across all accounts' : 'no open positions';
+  document.getElementById('activeAccounts').textContent = activeCount;
+
+  // Update tables
+  document.getElementById('accountsTable').innerHTML = accountRows || '<tr><td colspan="6" class="empty-state">No accounts found</td></tr>';
+  document.getElementById('positionsTable').innerHTML = positionRows || '<tr><td colspan="8" class="empty-state">No open positions</td></tr>';
+
+  // Fills table (sorted by time, most recent first)
+  allFills.sort((a, b) => new Date(b.time) - new Date(a.time));
+  let fillRows = '';
+  for (const fill of allFills.slice(0, 20)) {
+    const isBuy = fill.side === 'B';
+    const time = new Date(fill.time).toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const closedPnl = parseFloat(fill.closedPnl || 0);
+    fillRows += `<tr>
+      <td data-label="Account">${fill.accName}</td>
+      <td data-label="Time" style="color:var(--text-secondary)">${time}</td>
+      <td data-label="Market"><strong>${fill.coin}</strong></td>
+      <td data-label="Side"><span class="badge ${isBuy ? 'badge-long' : 'badge-short'}">${isBuy ? 'BUY' : 'SELL'}</span></td>
+      <td data-label="Size">${fmt(parseFloat(fill.sz), 5)}</td>
+      <td data-label="Price">${fmtUsd(fill.px)}</td>
+      <td data-label="Fee" style="color:var(--text-muted)">${fmtUsd(fill.fee)}</td>
+      <td data-label="Closed PnL" class="${pnlClass(closedPnl)}">${closedPnl !== 0 ? pnlSign(closedPnl) : '—'}</td>
+    </tr>`;
+  }
+  document.getElementById('fillsTable').innerHTML = fillRows || '<tr><td colspan="8" class="empty-state">No recent fills</td></tr>';
+
+  const now = new Date().toLocaleString('ja-JP');
+  document.getElementById('lastUpdate').textContent = `Last updated: ${now}`;
+}
+
+// Auto-refresh every 30 seconds
+loadAll();
+setInterval(loadAll, 5000);
+</script>
+</body>
+</html>

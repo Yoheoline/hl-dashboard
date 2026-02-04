@@ -1,0 +1,17 @@
+name: Keep Alive
+
+on:
+  schedule:
+    # Every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping dashboard
+        run: |
+          curl -sf https://hl-dashboard.onrender.com/health || echo "Service waking up..."
+          sleep 5
+          curl -sf https://hl-dashboard.onrender.com/health || echo "Still waking..."
