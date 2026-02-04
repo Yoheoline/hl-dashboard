@@ -1,0 +1,18 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # 10分ごとにpingする（UTC）
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render service
+        run: |
+          # RenderサービスのURLをここに入れてください
+          # 例：https://hl-dashboard-xxxxx.onrender.com
+          RENDER_URL="${{ secrets.RENDER_HEALTH_URL }}"
+          curl -f "$RENDER_URL/health" || echo "Health check failed, but continuing..."
